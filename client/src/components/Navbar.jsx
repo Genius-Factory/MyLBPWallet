@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { UserButton, useUser, SignedIn, SignedOut } from '@clerk/clerk-react'
 import { Menu, X, LogIn } from 'lucide-react'
+
 // import { useCart } from '../contexts/CartContext'
 
 export default function Navbar() {
@@ -30,9 +31,9 @@ export default function Navbar() {
         <Link to="/dashboard" onClick={() => setMobileOpen(false)} className={`flex items-center gap-2 text-sm py-1 ${active('/')}`}>
           Dashboard
         </Link>
-         
         
       </SignedIn>
+      
     </>
   )
 

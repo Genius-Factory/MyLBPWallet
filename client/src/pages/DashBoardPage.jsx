@@ -37,6 +37,8 @@ export default function DashBoardPage() {
   const [lbp, setLbp] = useState("");
   const [usd, setUsd] = useState("");
 
+  console.log("hey there!");
+
   const [chartData, setChartData] = useState(null);
   const handleLbpChange = ({ value }) => {
       setLbp(value);
@@ -150,7 +152,7 @@ export default function DashBoardPage() {
             </div>
           )}
         </div>
-        <h2 className='text-lg font-bold mb-2 text-center'>Fuel</h2>
+        <h2 className="mt-2 text-2xl font-semibold text-slate-900">Fuel</h2>
         <div className='w-full h-[350px] bg-white rounded-lg p-2'>
           {chartData ? (
             <Line data={chartData} options={options} />
