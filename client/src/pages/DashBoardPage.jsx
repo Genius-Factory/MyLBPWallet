@@ -112,6 +112,43 @@ export default function DashBoardPage() {
   };
 
   return (
+ 
+    <div className="Main flex flex-col gap-y-6 p-4">
+      <div className="bg-slate-300 rounded-xl px-4 py-4"> 
+        <div className='flex items-center space-x-4 sm: w-2/1 flex-col gap-8'>
+          <label className="text-sm font-medium text-slate-700 ">LBP To USD Conversion</label>
+          <div className="bg-slate-200 h-10 w-72 rounded-xl px-16" id="NumberBox">
+            <NumericFormat
+              placeholder='Enter LBP amount'
+              className='bg-transparent border-none outline-none p-2 w-full h-full focus:ring-0'
+              value={lbp}
+              thousandSeparator="," 
+              valueIsNumericString={true}
+              allowNegative={false}
+              onValueChange={handleLbpChange}
+            />
+          </div>
+          <div className="bg-slate-200 h-10 w-72 rounded-xl flex items-center justify-center" id="NumberBox">
+            <p className=' text-center' id="Number-Paragraph">Result: ${usd || '0.00'} USD</p>
+          </div>
+        </div>
+        <br />
+        <div className="flex gap-4 sm: flex-col w-2/1 justify-center">
+          <button className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 hover:bg-slate-100 sm: w-1/11 text-sm">
+            Electricity ⚡
+          </button>
+          <button className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 hover:bg-slate-100 sm: w-1/11 text-sm">
+            Water 💧
+          </button>
+          <button className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 hover:bg-slate-100 sm: w-1/10 text-sm">
+            Groceries 🛒
+          </button>
+          <button className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 hover:bg-slate-100 sm: w-1/10 text-sm">
+            Fuel ⛽
+          </button>
+        </div>
+      </div>
+
     <div className="flex w-full flex-col gap-6">
       <section className="rounded-xl bg-slate-300 p-4 sm:p-6 lg:p-8">
         <div className="grid gap-6 lg:grid-cols-[minmax(280px,420px)_1fr] lg:items-start">
@@ -119,6 +156,7 @@ export default function DashBoardPage() {
             <label className="text-sm font-medium text-slate-700">
               LBP To USD Conversion
             </label>
+
 
             <div className="h-12 rounded-xl bg-slate-200">
               <NumericFormat
@@ -174,5 +212,6 @@ export default function DashBoardPage() {
         </div>
       </section>
     </div>
+   </div> 
   );
 }
