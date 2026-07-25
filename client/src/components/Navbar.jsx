@@ -9,7 +9,6 @@ export default function Navbar() {
   const { user } = useUser()
   const role = user?.publicMetadata?.role || 'member'
   const loc = useLocation()
-  const [isOpen, setIsOpen] = useState(true);
   const navigate = useNavigate()
   const [mobileOpen, setMobileOpen] = useState(false)
 

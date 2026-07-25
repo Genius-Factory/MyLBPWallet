@@ -1,6 +1,6 @@
 // components/Sidebar.jsx
 import { Link, useLocation } from "react-router-dom";
-import { Home, Wallet, Settings, Menu, X } from "lucide-react";
+import { Home, Wallet, Settings, Menu, X, ShieldCheck } from "lucide-react";
 import { useState } from "react";
 import { useUser } from "@clerk/clerk-react";
 
