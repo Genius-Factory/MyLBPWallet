@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { UserButton, useUser, SignedIn, SignedOut } from '@clerk/clerk-react'
-import { Menu, X, LogIn } from 'lucide-react'
+import { Home, LayoutDashboard, LogIn, Menu, ShieldCheck, Wallet, X } from 'lucide-react'
 
 // import { useCart } from '../contexts/CartContext'
 
@@ -11,6 +11,15 @@ export default function Navbar() {
   const loc = useLocation()
   const navigate = useNavigate()
   const [mobileOpen, setMobileOpen] = useState(false)
+
+  const signedInLinks = [
+    { name: 'Home', path: '/home', icon: Home },
+    { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
+    { name: 'Wallet', path: '/wallet', icon: Wallet },
+    ...(role === 'admin'
+      ? [{ name: 'Admin Dashboard', path: '/admin-dashboard', icon: ShieldCheck }]
+      : []),
+  ]
 
   const active = (path) =>
     loc.pathname === path
@@ -26,11 +35,12 @@ export default function Navbar() {
         </Link>
       </SignedOut>
       <SignedIn>
-        
-        <Link to="/dashboard" onClick={() => setMobileOpen(false)} className={`flex items-center gap-2 text-sm py-1 ${active('/')}`}>
+        <Link to="/home" onClick={() => setMobileOpen(false)} className={`flex items-center gap-2 text-sm py-1 ${active('/home')}`}>
+          Home
+        </Link>
+        <Link to="/dashboard" onClick={() => setMobileOpen(false)} className={`flex items-center gap-2 text-sm py-1 ${active('/dashboard')}`}>
           Dashboard
         </Link>
-        
       </SignedIn>
       
     </>
@@ -92,11 +102,34 @@ export default function Navbar() {
 
       {/* Mobile dropdown */}
       {mobileOpen && (
-        <div className="md:hidden bg-white border-t px-4 py-3 flex flex-col gap-3">
-          {navLinks}
+        <div className="md:hidden border-t bg-white px-4 py-3 shadow-sm">
+          <SignedOut>
+            <div className="flex flex-col gap-3">
+              {navLinks}
+            </div>
+          </SignedOut>
+
           <SignedIn>
-            <div className="pt-2 border-t flex items-center gap-2">
-              <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full capitalize">{role}</span>
+            <div className="flex flex-col gap-1">
+              {signedInLinks.map(({ name, path, icon: Icon }) => (
+                <Link
+                  key={path}
+                  to={path}
+                  onClick={() => setMobileOpen(false)}
+                  className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition ${
+                    loc.pathname === path
+                      ? 'bg-blue-100 font-semibold text-blue-700'
+                      : 'text-gray-700 hover:bg-gray-100'
+                  }`}
+                >
+                  <Icon size={18} />
+                  <span>{name}</span>
+                </Link>
+              ))}
+
+              <div className="mt-2 border-t pt-3">
+                <span className="text-xs capitalize rounded-full bg-blue-100 px-2 py-1 text-blue-700">{role}</span>
+              </div>
             </div>
           </SignedIn>
         </div>

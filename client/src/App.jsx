@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { SignedIn, useUser } from '@clerk/clerk-react'
 import { Toaster } from 'react-hot-toast'
@@ -10,6 +11,7 @@ import SignUpPage from './pages/SignUpPage'
 import DashBoardPage from './pages/DashBoardPage'
 import AboutPage from './pages/AboutPage'
 import AdminDashboard from './pages/AdminDashboard'
+import WalletPage from './pages/WalletPage'
 
 function AdminRoute({ children }) {
   const { user, isLoaded } = useUser()
@@ -22,19 +24,30 @@ function AdminRoute({ children }) {
 }
 
 export default function App() {
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Toaster position="top-right" />
       <Navbar />
 
-      <div className="flex-1 w-full px-4 py-6 sm:px-6 lg:px-10">
+      <div
+        className={`flex-1 w-full px-4 py-6 transition-[padding] duration-200 sm:px-6 lg:pr-10 ${
+          sidebarCollapsed ? 'md:pl-28' : 'md:pl-64'
+        }`}
+      >
         <SignedIn>
-          <Sidebar />
+          <Sidebar
+            collapsed={sidebarCollapsed}
+            onToggle={() => setSidebarCollapsed((value) => !value)}
+          />
         </SignedIn>
 
         <main className="mx-auto min-h-[calc(100vh-4rem-160px)] w-full max-w-7xl">
           <Routes>
             <Route path="/" element={<HomePage />} />
+            <Route path="/home" element={<HomePage />} />
+            <Route path="/wallet" element={<WalletPage />} />
             <Route
               path="/admin-dashboard"
               element={
