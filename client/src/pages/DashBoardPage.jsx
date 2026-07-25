@@ -17,7 +17,7 @@ import {
   This is The DashBoard Page For The Lbp Wallet Website.
   It Contains all of the Important Features Of The Website
 
-  Written by: Ghadi
+  Written by: Ganafer
 */
 
 ChartJS.register(
