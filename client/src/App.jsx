@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { SignedIn, useUser } from '@clerk/clerk-react'
 import { Toaster } from 'react-hot-toast'
+import PropTypes from 'prop-types'
 import Navbar from './components/Navbar'
 import Sidebar from './components/Sidebar'
 import HomePage from './pages/HomePage'
@@ -52,4 +53,8 @@ export default function App() {
       </div>
     </div>
   )
+}
+
+AdminRoute.propTypes = {
+  children: PropTypes.node.isRequired,
 }

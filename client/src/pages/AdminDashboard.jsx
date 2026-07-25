@@ -1,18 +1,3 @@
-import { SignedIn, SignedOut, useUser } from '@clerk/clerk-react';
-import React, { useState, useEffect } from 'react';
-import { Line } from 'react-chartjs-2';
-import { NumericFormat } from "react-number-format";
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-} from 'chart.js';
-
 export default function AdminDashboard() {
   
   const items = Array.from({ lengh: 50 }, (_, i) => `List Item ${i + 1}`);

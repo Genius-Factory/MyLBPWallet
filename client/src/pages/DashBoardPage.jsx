@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Line } from "react-chartjs-2";
 import { NumericFormat } from "react-number-format";
 import { Droplet, Fuel, ShoppingCart, Zap } from "lucide-react";
@@ -52,17 +52,6 @@ export default function DashBoardPage() {
     }
 
     setUsd((Number(value) / RATE).toFixed(2));
-  };
-
-  const handleUsdChange = ({ value }) => {
-    setUsd(value);
-
-    if (value === "") {
-      setLbp("");
-      return;
-    }
-
-    setLbp((Number(value) * RATE).toFixed(0));
   };
 
   const fetchTestData = async () => {
