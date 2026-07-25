@@ -26,12 +26,12 @@ export default function App() {
       <Toaster position="top-right" />
       <Navbar />
 
-      <div className="flex-1 max-w-7xl w-full mx-auto px-4 py-6 grid gap-6 lg:grid-cols-[1000px_1fr] lg:px-10">
+      <div className="flex-1 w-full px-4 py-6 sm:px-6 lg:px-10">
         <SignedIn>
           <Sidebar />
         </SignedIn>
 
-        <main className="min-h-[calc(100vh-4rem-160px)]">
+        <main className="mx-auto min-h-[calc(100vh-4rem-160px)] w-full max-w-7xl">
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route

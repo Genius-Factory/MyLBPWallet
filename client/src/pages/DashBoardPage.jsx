@@ -1,7 +1,7 @@
-import { SignedIn, SignedOut, useUser } from '@clerk/clerk-react';
-import React, { useState, useEffect } from 'react';
-import { Line } from 'react-chartjs-2';
+import React, { useEffect, useState } from "react";
+import { Line } from "react-chartjs-2";
 import { NumericFormat } from "react-number-format";
+import { Droplet, Fuel, ShoppingCart, Zap } from "lucide-react";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -11,7 +11,7 @@ import {
   Title,
   Tooltip,
   Legend,
-} from 'chart.js';
+} from "chart.js";
 
 /*
   This is The DashBoard Page For The Lbp Wallet Website.
@@ -30,79 +30,100 @@ ChartJS.register(
   Legend
 );
 
-
 export default function DashBoardPage() {
- 
-  const RATE = 89500; 
+  const RATE = 89500;
   const [lbp, setLbp] = useState("");
   const [usd, setUsd] = useState("");
-
-  console.log("hey there!");
-
   const [chartData, setChartData] = useState(null);
+
+  const categories = [
+    { label: "Electricity", icon: Zap },
+    { label: "Water", icon: Droplet },
+    { label: "Groceries", icon: ShoppingCart },
+    { label: "Fuel", icon: Fuel },
+  ];
+
   const handleLbpChange = ({ value }) => {
-      setLbp(value);
+    setLbp(value);
 
-      if (value === "") {
-        setUsd("");
-        return;
-      }
+    if (value === "") {
+      setUsd("");
+      return;
+    }
 
-      setUsd((Number(value) / RATE).toFixed(2));
-    };
+    setUsd((Number(value) / RATE).toFixed(2));
+  };
 
-    const handleUsdChange = ({ value }) => {
-      setUsd(value);
+  const handleUsdChange = ({ value }) => {
+    setUsd(value);
 
-      if (value === "") {
-        setLbp("");
-        return;
-      }
+    if (value === "") {
+      setLbp("");
+      return;
+    }
 
-      setLbp((Number(value) * RATE).toFixed(0));
-    };
+    setLbp((Number(value) * RATE).toFixed(0));
+  };
 
   const fetchTestData = async () => {
     try {
-      const response = await fetch('http://localhost:4000/api/live-prices');
+      const response = await fetch("http://localhost:4000/api/live-prices");
       if (!response.ok) {
         throw new Error(`API responded with status ${response.status}`);
       }
       const result = await response.json();
-      
+
       setChartData({
         labels: result.labels,
         datasets: [
           {
-            label: 'Market Rates',
+            label: "Market Rates",
             data: result.values,
-            backgroundColor: 'rgba(54, 162, 235, 0.6)',
-            borderColor: 'rgba(54, 162, 235, 1)',
+            backgroundColor: "rgba(54, 162, 235, 0.6)",
+            borderColor: "rgba(54, 162, 235, 1)",
             borderWidth: 2,
-            tension: 0.2, 
-          }
-        ]
+            tension: 0.2,
+          },
+        ],
       });
     } catch (err) {
       console.error("Error drawing test data: ", err);
     }
   };
 
-  
   useEffect(() => {
     fetchTestData();
   }, []);
-  
+
   const options = {
     responsive: true,
-    maintainAspectRatio: false, 
+    maintainAspectRatio: false,
+    scales: {
+      x: {
+        ticks: {
+          autoSkip: true,
+          maxRotation: 35,
+          minRotation: 0,
+        },
+      },
+      y: {
+        beginAtZero: true,
+      },
+    },
     plugins: {
-      legend: { position: 'top' },
-      title: { display: true, text: 'Prices as Of Today' },
+      legend: {
+        position: "top",
+        labels: {
+          boxWidth: 18,
+          usePointStyle: true,
+        },
+      },
+      title: { display: true, text: "Prices as of Today" },
     },
   };
 
   return (
+ 
     <div className="Main flex flex-col gap-y-6 p-4">
       <div className="bg-slate-300 rounded-xl px-4 py-4"> 
         <div className='flex items-center space-x-4 sm: w-2/1 flex-col gap-8'>
@@ -139,50 +160,69 @@ export default function DashBoardPage() {
         </div>
       </div>
 
-      <div className='bg-slate-300 rounded-xl px-4 py-4 flex flex-col sm: size-96'>
-        <h3 className="text-lg font-bold mb-2 text-center">Live Economic Indexes</h3>
-        <br className='bg-black'/>
-        <h2 className='text-lg font-bold mb-2 text-center'>Electricity</h2>
-        <div className='w-full h-[350px] bg-white rounded-lg p-2 sm: mb-96'>
-          {chartData ? (
-            <Line data={chartData} options={options} />
-          ) : (
-            <div className="flex items-center justify-center h-full text-slate-500">
-              Loading market analytics data...
+    <div className="flex w-full flex-col gap-6">
+      <section className="rounded-xl bg-slate-300 p-4 sm:p-6 lg:p-8">
+        <div className="grid gap-6 lg:grid-cols-[minmax(280px,420px)_1fr] lg:items-start">
+          <div className="flex w-full max-w-md flex-col gap-6">
+            <label className="text-sm font-medium text-slate-700">
+              LBP To USD Conversion
+            </label>
+
+
+            <div className="h-12 rounded-xl bg-slate-200">
+              <NumericFormat
+                placeholder="Enter LBP amount"
+                className="h-full w-full bg-transparent p-3 text-base outline-none placeholder:text-slate-400 focus:ring-0"
+                value={lbp}
+                thousandSeparator=","
+                valueIsNumericString={true}
+                allowNegative={false}
+                onValueChange={handleLbpChange}
+              />
             </div>
-          )}
-        </div>
-        <h2 className="mt-2 text-2xl font-semibold text-slate-900">Fuel</h2>
-        <div className='w-full h-[350px] bg-white rounded-lg p-2'>
-          {chartData ? (
-            <Line data={chartData} options={options} />
-          ) : (
-            <div className="flex items-center justify-center h-full text-slate-500">
-              Loading market analytics data...
+
+            <div className="flex min-h-12 items-center justify-center rounded-xl bg-slate-200 px-3">
+              <p className="text-center text-base">Result: ${usd || "0.00"} USD</p>
             </div>
-          )}
+          </div>
+
+          <div className="grid w-full grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            {categories.map(({ label, icon: Icon }) => (
+              <button
+                key={label}
+                className="flex min-h-14 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium transition hover:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              >
+                <span>{label}</span>
+                <Icon size={18} aria-hidden="true" />
+              </button>
+            ))}
+          </div>
         </div>
-        <h2 className='text-lg font-bold mb-2 text-center'>Water</h2>
-        <div className='w-full h-[350px] bg-white rounded-lg p-2'>
-          {chartData ? (
-            <Line data={chartData} options={options} />
-          ) : (
-            <div className="flex items-center justify-center h-full text-slate-500">
-              Loading market analytics data...
-            </div>
-          )}
+      </section>
+
+      <section className="rounded-xl bg-slate-300 p-4 sm:p-6 lg:p-8">
+        <h3 className="mb-6 text-center text-xl font-bold">
+          Live Economic Indexes
+        </h3>
+
+        <div className="grid gap-6 lg:grid-cols-2">
+          {categories.map(({ label }) => (
+            <article key={label} className="min-w-0">
+              <h2 className="mb-3 text-center text-lg font-bold">{label}</h2>
+              <div className="h-72 w-full min-w-0 rounded-lg bg-white p-3 sm:h-80 lg:h-[350px]">
+                {chartData ? (
+                  <Line data={chartData} options={options} />
+                ) : (
+                  <div className="flex h-full items-center justify-center text-center text-slate-500">
+                    Loading market analytics data...
+                  </div>
+                )}
+              </div>
+            </article>
+          ))}
         </div>
-        <h2 className='text-lg font-bold mb-2 text-center'>Grocieres</h2>
-        <div className='w-full h-[350px] bg-white rounded-lg p-2'>
-          {chartData ? (
-            <Line data={chartData} options={options} />
-          ) : (
-            <div className="flex items-center justify-center h-full text-slate-500">
-              Loading market analytics data...
-            </div>
-          )}
-        </div>
-      </div>
+      </section>
     </div>
+   </div> 
   );
 }
