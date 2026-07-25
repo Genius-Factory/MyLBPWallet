@@ -104,9 +104,9 @@ export default function DashBoardPage() {
 
   return (
     <div className="Main flex flex-col gap-y-6 p-4">
-      <div className="bg-slate-300 rounded-xl px-4 py-4">
-        <div className='flex items-center space-x-4'>
-          <label className="text-sm font-medium text-slate-700">LBP To USD Conversion</label>
+      <div className="bg-slate-300 rounded-xl px-4 py-4 sm: size-3/1 "> 
+        <div className='flex items-center space-x-4 sm: w-2/1 flex-col gap-8 w-72'>
+          <label className="text-sm font-medium text-slate-700 ">LBP To USD Conversion</label>
           <div className="bg-slate-200 h-10 w-72 rounded-xl" id="NumberBox">
             <NumericFormat
               placeholder='Enter LBP amount'
@@ -119,31 +119,31 @@ export default function DashBoardPage() {
             />
           </div>
           <div className="bg-slate-200 h-10 w-72 rounded-xl flex items-center justify-center" id="NumberBox">
-            <p className='sm:text-lg text-center' id="Number-Paragraph">Result: ${usd || '0.00'} USD</p>
+            <p className=' text-center' id="Number-Paragraph">Result: ${usd || '0.00'} USD</p>
           </div>
         </div>
         <br />
-        <div className="flex gap-4">
-          <button className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 hover:bg-slate-100">
+        <div className="flex gap-4 sm: flex-col w-56 justify-center">
+          <button className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 hover:bg-slate-100 sm: w-1/11 text-sm">
             Electricity ⚡
           </button>
-          <button className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 hover:bg-slate-100">
+          <button className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 hover:bg-slate-100 sm: w-1/11 text-sm">
             Water 💧
           </button>
-          <button className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 hover:bg-slate-100">
+          <button className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 hover:bg-slate-100 sm: w-1/10 text-sm">
             Groceries 🛒
           </button>
-          <button className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 hover:bg-slate-100">
+          <button className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 hover:bg-slate-100 sm: w-1/10 text-sm">
             Fuel ⛽
           </button>
         </div>
       </div>
 
-      <div className='bg-slate-300 rounded-xl px-4 py-4 flex flex-col'>
+      <div className='bg-slate-300 rounded-xl px-4 py-4 flex flex-col sm: size-96'>
         <h3 className="text-lg font-bold mb-2 text-center">Live Economic Indexes</h3>
         <br className='bg-black'/>
         <h2 className='text-lg font-bold mb-2 text-center'>Electricity</h2>
-        <div className='w-full h-[350px] bg-white rounded-lg p-2'>
+        <div className='w-full h-[350px] bg-white rounded-lg p-2 sm: mb-96'>
           {chartData ? (
             <Line data={chartData} options={options} />
           ) : (
