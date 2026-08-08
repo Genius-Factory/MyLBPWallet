@@ -12,6 +12,7 @@ import DashBoardPage from './pages/DashBoardPage'
 import AboutPage from './pages/AboutPage'
 import AdminDashboard from './pages/AdminDashboard'
 import WalletPage from './pages/WalletPage'
+import DatabasePage from './pages/DatabasePage'
 
 function AdminRoute({ children }) {
   const { user, isLoaded } = useUser()
@@ -54,6 +55,14 @@ export default function App() {
                 <AdminRoute>
                   <AdminDashboard />
                 </AdminRoute>
+              }
+            />
+            <Route
+              path="/database"
+              element={
+                <SignedIn>
+                  <DatabasePage />
+                </SignedIn>
               }
             />
             <Route path="/sign-in" element={<SignInPage />} />

@@ -5,6 +5,7 @@ import {
   ChevronRight,
   Home,
   LayoutDashboard,
+  Database,
   ShieldCheck,
   Wallet,
 } from "lucide-react";
@@ -20,8 +21,11 @@ export default function Sidebar({ collapsed, onToggle }) {
     { name: "Home", path: "/home", icon: <Home size={18} /> },
     { name: "Dashboard", path: "/dashboard", icon: <LayoutDashboard size={18} /> },
     { name: "Wallet", path: "/wallet", icon: <Wallet size={18} /> },
+    { name: "Database", path: "/database", icon: <Database size={18} /> },
     ...(role === "admin"
-      ? [{ name: "Admin Dashboard", path: "/admin-dashboard", icon: <ShieldCheck size={18} /> }]
+      ? [
+          { name: "Admin Dashboard", path: "/admin-dashboard", icon: <ShieldCheck size={18} /> },
+        ]
       : []),
   ];
 

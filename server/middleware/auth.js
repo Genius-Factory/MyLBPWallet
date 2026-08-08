@@ -25,7 +25,7 @@ const syncUser = async (req, res, next) => {
 
   await db.query(
     `INSERT INTO users (id, username, email, role) VALUES ($1, $2, $3, $4)
-     ON CONFLICT (id) DO UPDATE SET username = $2, email = $3, role = $4`,
+     ON CONFLICT (email) DO UPDATE SET username = $2, role = $4`,
     [userId, username, email, role]
   );
   req.clerkUser = clerkUser;

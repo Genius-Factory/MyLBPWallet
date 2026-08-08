@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { UserButton, useUser, SignedIn, SignedOut } from '@clerk/clerk-react'
-import { Home, LayoutDashboard, LogIn, Menu, ShieldCheck, Wallet, X } from 'lucide-react'
+import { Database, Home, LayoutDashboard, LogIn, Menu, ShieldCheck, Wallet, X } from 'lucide-react'
 
 // import { useCart } from '../contexts/CartContext'
 
@@ -16,8 +16,11 @@ export default function Navbar() {
     { name: 'Home', path: '/home', icon: Home },
     { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
     { name: 'Wallet', path: '/wallet', icon: Wallet },
+    { name: 'Database', path: '/database', icon: Database },
     ...(role === 'admin'
-      ? [{ name: 'Admin Dashboard', path: '/admin-dashboard', icon: ShieldCheck }]
+      ? [
+          { name: 'Admin Dashboard', path: '/admin-dashboard', icon: ShieldCheck },
+        ]
       : []),
   ]
 
