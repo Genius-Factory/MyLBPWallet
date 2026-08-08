@@ -1,0 +1,27 @@
+Wallet
+────────────────────────────
+Balance: $4,320
+
+Income  Expenses  Savings
+
+[ Spending Chart ]
+
+
+Groceries      $320
+Fuel           $110
+Electricity     $78
+Rent           $900
+Dining         $145
+
+Recent Transactions
+• Grocery Store   -$54
+• Gas Station     -$42
+• Salary        +$2500
+
+Upcoming Bills
+⚡ Electricity - Aug 5
+🌐 Internet    - Aug 10
+
+Budget Progress
+
+Savings Goal
