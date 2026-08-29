@@ -11,7 +11,7 @@ export default function Navbar() {
   const loc = useLocation()
   const navigate = useNavigate()
   const [mobileOpen, setMobileOpen] = useState(false)
-
+  //Will check
   const signedInLinks = [
     { name: 'Home', path: '/home', icon: Home },
     { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },

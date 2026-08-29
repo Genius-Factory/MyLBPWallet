@@ -26,6 +26,14 @@ function AdminRoute({ children }) {
 
 export default function App() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [currentExpenses, setCurrentExpenses] = useState({ lbp: '', usd: '' })
+  const [categoryWallet, setCategoryWallet] = useState({
+    electricity: { value: '', usd: '', price: 7.88 },
+    water: { value: '', usd: '', price: 400000 },
+    fuel: { value: '', usd: '', price: 2455000 },
+    groceries: { value: '', usd: '', price: 895000 },
+  })
+  const [monthlyBudget, setMonthlyBudget] = useState('')
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -48,7 +56,17 @@ export default function App() {
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/home" element={<HomePage />} />
-            <Route path="/wallet" element={<WalletPage />} />
+            <Route
+              path="/wallet"
+              element={
+                <WalletPage
+                  currentExpenses={currentExpenses}
+                  categoryWallet={categoryWallet}
+                  monthlyBudget={monthlyBudget}
+                  setMonthlyBudget={setMonthlyBudget}
+                />
+              }
+            />
             <Route
               path="/admin-dashboard"
               element={
@@ -67,7 +85,15 @@ export default function App() {
             />
             <Route path="/sign-in" element={<SignInPage />} />
             <Route path="/sign-up" element={<SignUpPage />} />
-            <Route path="/dashboard" element={<DashBoardPage />} />
+            <Route
+              path="/dashboard"
+              element={
+                <DashBoardPage
+                  setCurrentExpenses={setCurrentExpenses}
+                  setCategoryWallet={setCategoryWallet}
+                />
+              }
+            />
             <Route path="/about" element={<AboutPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>

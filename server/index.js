@@ -86,6 +86,7 @@ app.get('/api/live-prices', async (req, res) => {
 
 app.use('/api/users', require('./routes/users'));
 app.use('/api/database', require('./routes/database'));
+app.use('/api/transactions', require('./routes/transactions'));
 
 
 const { authenticate, syncUser } = require('./middleware/auth');
