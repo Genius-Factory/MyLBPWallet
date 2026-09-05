@@ -99,6 +99,11 @@ export default function WalletPage({
               <p>Remaining budget: <span className={`font-semibold ${remainingBudget < 0 ? "text-red-600" : "text-emerald-700"}`}>
                 {hasBudget ? `$${remainingBudget.toFixed(2)}` : "Set a budget"}
               </span></p>
+              <div className="rounded-xl">
+                <button>
+
+                </button>
+              </div>
           </div>
           </div>
       </div>

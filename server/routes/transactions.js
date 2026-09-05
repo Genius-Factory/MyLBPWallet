@@ -5,16 +5,63 @@ const { authenticate, syncUser } = require('../middleware/auth');
 const signedInOnly = [authenticate, syncUser];
 
 router.get('/', signedInOnly, async (req, res) => {
-  const result = await db.query(
-    `SELECT id, title, amount, currency, type, notes, spent_at
-     FROM transactions
-     WHERE user_id = $1
-     ORDER BY spent_at DESC, id DESC
-     LIMIT 50`,
-    [req.auth.userId]
-  );
+  const { period = 'all', type = 'all' } = req.query;
+  const values = [req.auth.userId];
+  const conditions = ['user_id = $1'];
 
-  res.json({ transactions: result.rows });
+  if (type === 'income' || type === 'expense') {
+    values.push(type);
+    conditions.push(`type = $${values.length}`);
+  }
+
+  if (period === 'today') {
+    conditions.push('spent_at >= CURRENT_DATE AND spent_at < CURRENT_DATE + INTERVAL \'1 day\'');
+  } else if (period === 'this-month') {
+    conditions.push("spent_at >= date_trunc('month', CURRENT_DATE) AND spent_at < date_trunc('month', CURRENT_DATE) + INTERVAL '1 month'");
+  } else if (period === 'previous-month') {
+    conditions.push("spent_at >= date_trunc('month', CURRENT_DATE) - INTERVAL '1 month' AND spent_at < date_trunc('month', CURRENT_DATE)");
+  }
+
+  const whereClause = conditions.join(' AND ');
+  const [transactionsResult, totalsResult, categoriesResult] = await Promise.all([
+    db.query(
+      `SELECT id, title, amount, currency, type, notes, spent_at
+       FROM transactions
+       WHERE ${whereClause}
+       ORDER BY spent_at DESC, id DESC
+       LIMIT 50`,
+      values
+    ),
+    db.query(
+      `SELECT
+         COALESCE(SUM(amount) FILTER (WHERE type = 'income'), 0) AS income,
+         COALESCE(SUM(amount) FILTER (WHERE type = 'expense'), 0) AS expenses
+       FROM transactions
+       WHERE ${whereClause}`,
+      values
+    ),
+    db.query(
+      `SELECT title AS category, type, COALESCE(SUM(amount), 0) AS total
+       FROM transactions
+       WHERE ${whereClause}
+       GROUP BY title, type
+       ORDER BY total DESC, title ASC`,
+      values
+    ),
+  ]);
+
+  const income = Number(totalsResult.rows[0].income);
+  const expenses = Number(totalsResult.rows[0].expenses);
+
+  res.json({
+    transactions: transactionsResult.rows,
+    totals: { income, expenses, balance: income - expenses },
+    categories: categoriesResult.rows.map((row) => ({
+      category: row.category,
+      type: row.type,
+      total: Number(row.total),
+    })),
+  });
 });
 
 router.post('/', signedInOnly, async (req, res) => {

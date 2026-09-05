@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Line } from "react-chartjs-2";
 import { NumericFormat } from "react-number-format";
 import PropTypes from "prop-types";
@@ -39,6 +39,10 @@ export default function DashBoardPage({ setCurrentExpenses, setCategoryWallet })
   const [usd, setUsd] = useState("");
   const [chartData, setChartData] = useState(null);
   const [transactions, setTransactions] = useState([]);
+  const [period, setPeriod] = useState("this-month");
+  const [type, setType] = useState("all");
+  const [totals, setTotals] = useState({ income: 0, expenses: 0, balance: 0 });
+  const [categoryTotals, setCategoryTotals] = useState([]);
   const [editingTransaction, setEditingTransaction] = useState(null);
   const [isSavingTransaction, setIsSavingTransaction] = useState(false);
   const api = useApi();
@@ -85,7 +89,7 @@ export default function DashBoardPage({ setCurrentExpenses, setCategoryWallet })
       currency: "LBP",
       type: "expense",
     })
-      .then(({ data }) => setTransactions((prev) => [data.transaction, ...prev]))
+      .then(() => loadTransactions())
       .catch(() => toast.error("Could not save this transaction"));
 
     setLbp("");
@@ -96,7 +100,7 @@ export default function DashBoardPage({ setCurrentExpenses, setCategoryWallet })
   const handleDeleteTransaction = async (id) => {
     try {
       await api.delete(`/api/transactions/${id}`);
-      setTransactions((prev) => prev.filter((transaction) => transaction.id !== id));
+      await loadTransactions();
       toast.success("Transaction deleted");
     } catch {
       toast.error("Could not delete this transaction");
@@ -107,13 +111,11 @@ export default function DashBoardPage({ setCurrentExpenses, setCategoryWallet })
     event.preventDefault();
     setIsSavingTransaction(true);
     try {
-      const { data } = await api.put(`/api/transactions/${editingTransaction.id}`, {
+      await api.put(`/api/transactions/${editingTransaction.id}`, {
         title: editingTransaction.title,
         amount: editingTransaction.amount,
       });
-      setTransactions((prev) => prev.map((transaction) => (
-        transaction.id === data.transaction.id ? data.transaction : transaction
-      )));
+      await loadTransactions();
       setEditingTransaction(null);
       toast.success("Transaction updated");
     } catch {
@@ -157,12 +159,29 @@ export default function DashBoardPage({ setCurrentExpenses, setCategoryWallet })
     }
   };
 
+  const loadTransactions = useCallback(async () => {
+    try {
+      const { data } = await api.get("/api/transactions", { params: { period, type } });
+      setTransactions(data.transactions || []);
+      setTotals(data.totals || { income: 0, expenses: 0, balance: 0 });
+      setCategoryTotals(data.categories || []);
+    } catch {
+      toast.error("Could not load transactions");
+    }
+  }, [api, period, type]);
+
   useEffect(() => {
     fetchTestData();
-    api.get("/api/transactions")
-      .then(({ data }) => setTransactions(data.transactions))
-      .catch(() => toast.error("Could not load recent transactions"));
-  }, [api]);
+  }, []);
+
+  useEffect(() => {
+    loadTransactions();
+  }, [loadTransactions]);
+
+  const visibleCategories = useMemo(
+    () => categoryTotals.filter((entry) => type === "all" || entry.type === type),
+    [categoryTotals, type]
+  );
 
   const options = {
     responsive: true,
@@ -195,6 +214,74 @@ export default function DashBoardPage({ setCurrentExpenses, setCategoryWallet })
 
   return (
     <div className="flex w-full flex-col gap-6">
+      <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <p className="text-sm font-medium uppercase tracking-wide text-blue-600">Overview</p>
+            <h1 className="mt-1 text-2xl font-bold text-slate-900">Your money at a glance</h1>
+          </div>
+          <div className="flex flex-wrap gap-2" role="group" aria-label="Date filter">
+            {[['today', 'Today'], ['this-month', 'This month'], ['previous-month', 'Previous month']].map(([value, label]) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setPeriod(value)}
+                className={`rounded-lg px-3 py-2 text-sm font-medium transition ${period === value ? "bg-blue-600 text-white" : "border border-slate-300 bg-white text-slate-700 hover:bg-slate-50"}`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="mt-5 flex flex-wrap gap-2" role="group" aria-label="Transaction type filter">
+          {[['all', 'All transactions'], ['income', 'Income only'], ['expense', 'Expenses only']].map(([value, label]) => (
+            <button
+              key={value}
+              type="button"
+              onClick={() => setType(value)}
+              className={`rounded-full px-3 py-1.5 text-sm font-medium transition ${type === value ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
+        <div className="mt-5 grid gap-3 sm:grid-cols-3">
+          {[
+            ["Total income", totals.income, "text-emerald-700"],
+            ["Total expenses", totals.expenses, "text-rose-700"],
+            ["Balance", totals.balance, totals.balance >= 0 ? "text-slate-900" : "text-rose-700"],
+          ].map(([label, amount, color]) => (
+            <article key={label} className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+              <p className="text-sm text-slate-500">{label}</p>
+              <p className={`mt-2 text-2xl font-bold ${color}`}>{Number(amount).toLocaleString()} LBP</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <p className="text-sm font-medium uppercase tracking-wide text-blue-600">Breakdown</p>
+            <h2 className="mt-1 text-xl font-bold text-slate-900">Category totals</h2>
+          </div>
+          <span className="text-sm text-slate-500">Filtered period</span>
+        </div>
+        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {visibleCategories.length === 0 ? (
+            <p className="col-span-full py-4 text-sm text-slate-500">No category totals for this filter.</p>
+          ) : visibleCategories.map((entry) => (
+            <article key={`${entry.type}-${entry.category}`} className="rounded-lg bg-slate-100 p-4">
+              <p className="font-medium text-slate-800">{entry.category}</p>
+              <p className="mt-2 text-lg font-semibold text-slate-900">{Number(entry.total).toLocaleString()} LBP</p>
+              <p className="text-xs capitalize text-slate-500">{entry.type}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
       <section className="rounded-xl bg-slate-300 p-4 sm:p-6 lg:p-8">
         <div className="grid gap-6 lg:grid-cols-[minmax(280px,420px)_1fr] lg:items-start">
           <div className="flex w-full max-w-md flex-col gap-6">
