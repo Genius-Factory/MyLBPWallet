@@ -45,7 +45,8 @@ export default function DatabasePage() {
 
   useEffect(() => {
     loadTables()
-  }, [])
+  }, 
+)
 
   useEffect(() => {
     if (!selectedTable) return

@@ -2,7 +2,62 @@ const router = require('express').Router();
 const db = require('../db');
 const { authenticate, syncUser } = require('../middleware/auth');
 
+
 const signedInOnly = [authenticate, syncUser];
+const LBP_PER_USD = 89500;
+
+router.get('/budget', signedInOnly, async (req, res) => {
+  const result = await db.query(
+    `SELECT amount, currency
+     FROM budgets
+     WHERE user_id = $1 AND category_id IS NULL
+       AND month = date_trunc('month', CURRENT_DATE)::date
+     LIMIT 1`,
+    [req.auth.userId]
+  );
+
+  res.json({
+    budget: result.rows[0]
+      ? { amount: Number(result.rows[0].amount), currency: result.rows[0].currency }
+      : null,
+  });
+});
+
+router.put('/budget', signedInOnly, async (req, res) => {
+  const amount = Number(req.body.amount);
+
+  if (!Number.isFinite(amount) || amount < 0) {
+    return res.status(400).json({ error: 'A non-negative budget amount is required' });
+  }
+
+  const existing = await db.query(
+    `SELECT id
+     FROM budgets
+     WHERE user_id = $1 AND category_id IS NULL
+       AND month = date_trunc('month', CURRENT_DATE)::date
+     LIMIT 1`,
+    [req.auth.userId]
+  );
+
+  const result = existing.rowCount > 0
+    ? await db.query(
+      `UPDATE budgets
+       SET amount = $1, currency = 'USD'
+       WHERE id = $2
+       RETURNING amount, currency`,
+      [amount, existing.rows[0].id]
+    )
+    : await db.query(
+      `INSERT INTO budgets (user_id, amount, currency, month)
+       VALUES ($1, $2, 'USD', date_trunc('month', CURRENT_DATE)::date)
+       RETURNING amount, currency`,
+      [req.auth.userId, amount]
+    );
+
+  res.json({
+    budget: { amount: Number(result.rows[0].amount), currency: result.rows[0].currency },
+  });
+});
 
 router.get('/', signedInOnly, async (req, res) => {
   const { period = 'all', type = 'all' } = req.query;
@@ -35,7 +90,14 @@ router.get('/', signedInOnly, async (req, res) => {
     db.query(
       `SELECT
          COALESCE(SUM(amount) FILTER (WHERE type = 'income'), 0) AS income,
-         COALESCE(SUM(amount) FILTER (WHERE type = 'expense'), 0) AS expenses
+         COALESCE(SUM(amount) FILTER (WHERE type = 'expense'), 0) AS expenses,
+         COALESCE(SUM(
+           CASE
+             WHEN type = 'expense' AND currency = 'USD' THEN amount
+             WHEN type = 'expense' AND currency = 'LBP' THEN amount / ${LBP_PER_USD}
+             ELSE 0
+           END
+         ), 0) AS expenses_usd
        FROM transactions
        WHERE ${whereClause}`,
       values
@@ -52,10 +114,11 @@ router.get('/', signedInOnly, async (req, res) => {
 
   const income = Number(totalsResult.rows[0].income);
   const expenses = Number(totalsResult.rows[0].expenses);
+  const expensesUsd = Number(totalsResult.rows[0].expenses_usd);
 
   res.json({
     transactions: transactionsResult.rows,
-    totals: { income, expenses, balance: income - expenses },
+    totals: { income, expenses, expensesUsd, balance: income - expenses },
     categories: categoriesResult.rows.map((row) => ({
       category: row.category,
       type: row.type,

@@ -89,6 +89,7 @@ app.use('/api/database', require('./routes/database'));
 app.use('/api/transactions', require('./routes/transactions'));
 
 
+
 const { authenticate, syncUser } = require('./middleware/auth');
 app.get('/api/me', authenticate, syncUser, (req, res) => {
   const email = req.clerkUser?.emailAddresses?.[0]?.emailAddress;

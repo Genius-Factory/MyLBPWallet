@@ -1,9 +1,9 @@
 export default function AdminDashboard() {
   
-  const items = Array.from({ lengh: 50 }, (_, i) => `List Item ${i + 1}`);
+  const items = Array.from({ length: 50 }, (_, i) => `List Item ${i + 1}`);
 
   return(
-    <div className='Main flex flex-col gap-y-6 p-2 b\lool. b300 rounded-xl bg-slate-300'>
+    <div className='Main flex flex-col gap-y-6 p-2 b300 rounded-xl bg-slate-300'>
       <h1 className='text-lg font-bold text-center max-w-md mt-2'>Admin Dashboard</h1>
        <div className='relative flex h-64 flex-col justify-between max-w-sm overflow-y-auto rounded-[2rem] border border-white/70 bg-white/60 p-6 shadow-[0_24px_60px_-35px_rgba(14,165,233,0.55)] backdrop-blur-sm max-h-48 w-100 '>
           <h1 className='text-lg font-bold mb-2 text-center bg-slate-100 rounded-xl'>Actions</h1>

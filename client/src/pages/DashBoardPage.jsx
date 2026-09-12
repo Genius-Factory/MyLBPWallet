@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Line } from "react-chartjs-2";
 import { NumericFormat } from "react-number-format";
-import PropTypes from "prop-types";
 import { Pencil, Trash2, Droplet, Fuel, ShoppingCart, Zap } from "lucide-react";
 import toast from "react-hot-toast";
 import { useApi } from "../hooks/useApi";
@@ -26,14 +25,8 @@ ChartJS.register(
   Legend
 );
 
-export default function DashBoardPage({ setCurrentExpenses, setCategoryWallet }) {
+export default function DashBoardPage() {
   const RATE = 89500;
-  const CATEGORY_PRICES = {
-    Electricity: 7.88,
-    Water: 400000,
-    Groceries: 895000,
-    Fuel: 2455000,
-  };
   const [selectedCategory, setSelectedCategory] = useState("Electricity");
   const [lbp, setLbp] = useState("");
   const [usd, setUsd] = useState("");
@@ -54,34 +47,20 @@ export default function DashBoardPage({ setCurrentExpenses, setCategoryWallet })
     { label: "Fuel", icon: Fuel },
   ];
 
-  const getCategoryKey = (label) => label.toLowerCase();
-
   const handleLbpChange = ({ value }) => {
     setLbp(value);
 
     if (value === "") {
       setUsd("");
-      setCurrentExpenses({ lbp: "", usd: "" });
       return;
     }
 
     const converted = (Number(value) / RATE).toFixed(2);
     setUsd(converted);
-    setCurrentExpenses({ lbp: value, usd: converted });
   };
 
   const handleAddExpense = () => {
     if (lbp === "") return;
-
-    const categoryKey = getCategoryKey(selectedCategory);
-    setCategoryWallet((prev) => ({
-      ...prev,
-      [categoryKey]: {
-        value: String((Number(prev[categoryKey]?.value) || 0) + Number(lbp)),
-        usd: ((Number(prev[categoryKey]?.usd) || 0) + Number(usd)).toFixed(2),
-        price: CATEGORY_PRICES[selectedCategory],
-      },
-    }));
 
     api.post("/api/transactions", {
       title: selectedCategory,
@@ -94,7 +73,6 @@ export default function DashBoardPage({ setCurrentExpenses, setCategoryWallet })
 
     setLbp("");
     setUsd("");
-    setCurrentExpenses({ lbp: "", usd: "" });
   };
 
   const handleDeleteTransaction = async (id) => {
@@ -129,7 +107,6 @@ export default function DashBoardPage({ setCurrentExpenses, setCategoryWallet })
     setSelectedCategory(label);
     setLbp("");
     setUsd("");
-    setCurrentExpenses({ lbp: "", usd: "" });
   };
 
   const fetchTestData = async () => {
@@ -399,7 +376,3 @@ export default function DashBoardPage({ setCurrentExpenses, setCategoryWallet })
   );
 }
 
-DashBoardPage.propTypes = {
-  setCurrentExpenses: PropTypes.func.isRequired,
-  setCategoryWallet: PropTypes.func.isRequired,
-};
