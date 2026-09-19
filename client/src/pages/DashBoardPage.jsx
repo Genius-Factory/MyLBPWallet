@@ -38,6 +38,11 @@ export default function DashBoardPage() {
   const [categoryTotals, setCategoryTotals] = useState([]);
   const [editingTransaction, setEditingTransaction] = useState(null);
   const [isSavingTransaction, setIsSavingTransaction] = useState(false);
+  const [showIncomeForm, setShowIncomeForm] = useState(false);
+  const [incomeSource, setIncomeSource] = useState("");
+  const [incomeAmount, setIncomeAmount] = useState("");
+  const [incomeNotes, setIncomeNotes] = useState("");
+  const [isSavingIncome, setIsSavingIncome] = useState(false);
   const api = useApi();
 
   const categories = [
@@ -73,6 +78,37 @@ export default function DashBoardPage() {
 
     setLbp("");
     setUsd("");
+  };
+
+  const handleAddIncome = async (event) => {
+    event.preventDefault();
+    const amount = Number(incomeAmount);
+
+    if (!incomeSource.trim() || !Number.isFinite(amount) || amount <= 0) {
+      toast.error("Enter an income source and a positive amount");
+      return;
+    }
+
+    setIsSavingIncome(true);
+    try {
+      await api.post("/api/transactions", {
+        title: incomeSource.trim(),
+        amount,
+        currency: "LBP",
+        type: "income",
+        notes: incomeNotes.trim() || null,
+      });
+      await loadTransactions();
+      setIncomeSource("");
+      setIncomeAmount("");
+      setIncomeNotes("");
+      setShowIncomeForm(false);
+      toast.success("Income source added");
+    } catch {
+      toast.error("Could not save this income");
+    } finally {
+      setIsSavingIncome(false);
+    }
   };
 
   const handleDeleteTransaction = async (id) => {
@@ -158,6 +194,11 @@ export default function DashBoardPage() {
   const visibleCategories = useMemo(
     () => categoryTotals.filter((entry) => type === "all" || entry.type === type),
     [categoryTotals, type]
+  );
+
+  const incomeSources = useMemo(
+    () => categoryTotals.filter((entry) => entry.type === "income"),
+    [categoryTotals]
   );
 
   const options = {
@@ -311,6 +352,47 @@ export default function DashBoardPage() {
         </div>
       </section>
 
+      <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <p className="text-sm font-medium uppercase tracking-wide text-emerald-600">Income</p>
+            <h2 className="mt-1 text-xl font-bold text-slate-900">Income sources</h2>
+          </div>
+          <button type="button" onClick={() => setShowIncomeForm((visible) => !visible)} className="rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-blue-700">
+            {showIncomeForm ? "Close form" : "+ Add income"}
+          </button>
+        </div>
+
+        {showIncomeForm && (
+          <form onSubmit={handleAddIncome} className="mt-5 grid gap-3 rounded-lg bg-emerald-50 p-4 sm:grid-cols-2 lg:grid-cols-[1fr_180px_1fr_auto] lg:items-end">
+            <label className="text-sm font-medium text-slate-700">Source<input required value={incomeSource} onChange={(event) => setIncomeSource(event.target.value)} placeholder="Salary, freelance, gift..." className="mt-1 h-10 w-full rounded-lg border border-slate-300 bg-white px-3 font-normal outline-none focus:border-emerald-500" /></label>
+            <label className="text-sm font-medium text-slate-700">Amount (LBP)<input required min="0.01" step="0.01" type="number" value={incomeAmount} onChange={(event) => setIncomeAmount(event.target.value)} placeholder="0" className="mt-1 h-10 w-full rounded-lg border border-slate-300 bg-white px-3 font-normal outline-none focus:border-emerald-500" /></label>
+            <label className="text-sm font-medium text-slate-700">Note (optional)<input value={incomeNotes} onChange={(event) => setIncomeNotes(event.target.value)} placeholder="Paycheck for September" className="mt-1 h-10 w-full rounded-lg border border-slate-300 bg-white px-3 font-normal outline-none focus:border-emerald-500" /></label>
+            <button disabled={isSavingIncome} type="submit" className="h-10 rounded-lg bg-emerald-600 px-4 text-sm font-semibold text-white hover:bg-emerald-700 disabled:bg-slate-400">{isSavingIncome ? "Saving..." : "Save income"}</button>
+          </form>
+        )}
+
+        <div className="mt-6 divide-y divide-slate-100">
+          {incomeSources.length === 0 ? (
+            <p className="rounded-lg bg-slate-50 px-4 py-6 text-sm text-slate-500">No income sources recorded for this period.</p>
+          ) : incomeSources.map((source, index) => {
+            const percentage = Number(totals.income) > 0 ? (Number(source.total) / Number(totals.income)) * 100 : 0;
+            const barColors = ["bg-blue-600", "bg-emerald-600", "bg-violet-500", "bg-amber-500"];
+            return (
+              <article key={source.category} className="py-4 first:pt-0 last:pb-0">
+                <div className="flex items-center justify-between gap-4 text-sm">
+                  <p className="font-semibold text-slate-800">{source.category}</p>
+                  <div className="flex items-center gap-3 text-right"><span className="font-medium text-slate-700">{Number(source.total).toLocaleString()} LBP</span><span className="w-12 text-xs text-slate-500">{percentage.toFixed(1)}%</span></div>
+                </div>
+                <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-100" role="progressbar" aria-label={`${source.category} share of income`} aria-valuenow={percentage} aria-valuemin="0" aria-valuemax="100"><div className={`h-full rounded-full ${barColors[index % barColors.length]}`} style={{ width: `${Math.min(percentage, 100)}%` }} /></div>
+              </article>
+            );
+          })}
+        </div>
+
+        <div className="mt-5 flex items-center justify-between border-t border-slate-200 pt-4 text-sm"><span className="font-medium text-slate-600">Total income</span><span className="font-bold text-slate-900">{Number(totals.income).toLocaleString()} LBP</span></div>
+      </section>
+          
       <section className="rounded-xl bg-white p-4 shadow-sm sm:p-6">
         <div className="flex items-center justify-between gap-4">
           <h2 className="text-xl font-bold text-slate-900">Recent Transactions</h2>
@@ -348,6 +430,9 @@ export default function DashBoardPage() {
             <button type="button" onClick={() => setEditingTransaction(null)} className="h-10 rounded-lg border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-700 hover:bg-slate-50">Cancel</button>
           </form>
         )}
+        <div className="xl">
+
+        </div>
       </section>
 
       <section className="rounded-xl bg-slate-300 p-4 sm:p-6 lg:p-8">

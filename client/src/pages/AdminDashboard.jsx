@@ -1,7 +1,19 @@
+import { useApi } from "../hooks/useApi";
+//import { useState } from "react";
+
 export default function AdminDashboard() {
   
-  const items = Array.from({ length: 50 }, (_, i) => `List Item ${i + 1}`);
+  const api = useApi();
+  
+  //const [Username, setUsername] = useState("")
+  const displayusers = () => {
+    api.post("api/users", {
+      
+    })
+  }
 
+  const items = Array.from({ length: 50 }, (_, i) => `List Item ${i + 1}`);
+  displayusers()
   return(
     <div className='Main flex flex-col gap-y-6 p-2 b300 rounded-xl bg-slate-300'>
       <h1 className='text-lg font-bold text-center max-w-md mt-2'>Admin Dashboard</h1>
