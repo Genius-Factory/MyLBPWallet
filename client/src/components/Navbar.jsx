@@ -16,9 +16,9 @@ export default function Navbar() {
     { name: 'Home', path: '/home', icon: Home },
     { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
     { name: 'Wallet', path: '/wallet', icon: Wallet },
-    { name: 'Database', path: '/database', icon: Database },
     ...(role === 'admin'
       ? [
+          { name: 'Database', path: '/database', icon: Database },
           { name: 'Admin Dashboard', path: '/admin-dashboard', icon: ShieldCheck },
         ]
       : []),
@@ -60,7 +60,11 @@ export default function Navbar() {
         
         {/* Desktop nav */}
         <div className="hidden md:flex items-center gap-6">
-          {navLinks}
+          <SignedOut>
+            <Link to="/" onClick={() => setMobileOpen(false)} className={`flex items-center gap-2 text-sm py-1 ${active('/')}`}>
+              Home
+            </Link>
+          </SignedOut>
         </div>
 
         {/* Desktop right side */}

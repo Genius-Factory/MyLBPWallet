@@ -1,8 +1,8 @@
 const router = require('express').Router();
 const db = require('../db');
-const { authenticate, syncUser } = require('../middleware/auth');
+const { authenticate, syncUser, requireRole } = require('../middleware/auth');
 
-const signedInOnly = [authenticate, syncUser];
+const adminOnly = [authenticate, syncUser, requireRole('admin')];
 
 const getTables = async () => {
   const result = await db.query(`
@@ -55,12 +55,12 @@ const assertKnownTable = async (tableName) => {
 
 const quoteIdentifier = (identifier) => `"${identifier.replace(/"/g, '""')}"`;
 
-router.get('/tables', signedInOnly, async (req, res) => {
+router.get('/tables', adminOnly, async (req, res) => {
   const tables = await getTables();
   res.json({ tables });
 });
 
-router.get('/tables/:tableName', signedInOnly, async (req, res) => {
+router.get('/tables/:tableName', adminOnly, async (req, res) => {
   const tableName = req.params.tableName;
   const limit = Math.min(Math.max(Number(req.query.limit) || 50, 1), 100);
   const offset = Math.max(Number(req.query.offset) || 0, 0);

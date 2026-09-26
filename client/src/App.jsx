@@ -64,9 +64,9 @@ export default function App() {
             <Route
               path="/database"
               element={
-                <SignedIn>
+                <AdminRoute>
                   <DatabasePage />
-                </SignedIn>
+                </AdminRoute>
               }
             />
             <Route path="/sign-in" element={<SignInPage />} />
