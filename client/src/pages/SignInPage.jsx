@@ -6,7 +6,7 @@ export default function SignInPage() {
       <div className="text-center">
         <h1 className="text-3xl font-bold text-blue-700 mb-2"> Personal Wallet Tracker </h1>
         <p className="text-gray-500 mb-8">Sign in to access your wallet</p>
-        <SignIn afterSignInUrl="/" />
+        <SignIn routing="path" path="/sign-in" signUpUrl="/sign-up" forceRedirectUrl="/dashboard" />
       </div>
     </div>
   )

@@ -1,91 +1,48 @@
-import { useState } from 'react'
+import { Fragment } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
-import { SignedIn, useUser } from '@clerk/clerk-react'
+import { useUser } from '@clerk/clerk-react'
 import { Toaster } from 'react-hot-toast'
-import PropTypes from 'prop-types'
 import Navbar from './components/Navbar'
-import Sidebar from './components/Sidebar'
 import HomePage from './pages/HomePage'
 import SignInPage from './pages/SignInPage'
 import SignUpPage from './pages/SignUpPage'
 import DashBoardPage from './pages/DashBoardPage'
-import AboutPage from './pages/AboutPage'
 import AdminDashboard from './pages/AdminDashboard'
-import WalletPage from './pages/WalletPage'
 import DatabasePage from './pages/DatabasePage'
 
-function AdminRoute({ children }) {
+function Protected({ children, admin = false }) {
   const { user, isLoaded } = useUser()
-
-  if (!isLoaded) return null
+  if (!isLoaded) return <p role="status" className="py-16 text-center text-slate-500">Loading your account…</p>
   if (!user) return <Navigate to="/sign-in" replace />
-  if (user.publicMetadata?.role !== 'admin') return <Navigate to="/dashboard" replace />
+  if (admin && user.publicMetadata?.role !== 'admin') return <Navigate to="/dashboard" replace />
+  return <Fragment key={user.id}>{children}</Fragment>
+}
 
-  return children
+function Home() {
+  const { user, isLoaded } = useUser()
+  if (!isLoaded) return <p role="status">Loading your account…</p>
+  return user ? <Navigate to="/dashboard" replace /> : <HomePage />
 }
 
 export default function App() {
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-slate-50 text-slate-900">
       <Toaster position="top-right" />
       <Navbar />
-
-      <div
-        className={`flex-1 w-full px-4 py-6 transition-[padding] duration-200 sm:px-6 lg:pr-10 ${
-          sidebarCollapsed ? 'md:pl-28' : 'md:pl-64'
-        }`}
-      >
-        <SignedIn>
-          <Sidebar
-            collapsed={sidebarCollapsed}
-            onToggle={() => setSidebarCollapsed((value) => !value)}
-          />
-        </SignedIn>
-
-        <main className="mx-auto min-h-[calc(100vh-4rem-160px)] w-full max-w-7xl">
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/home" element={<HomePage />} />
-            <Route
-              path="/wallet"
-              element={
-                <WalletPage />
-              }
-            />
-            <Route
-              path="/admin-dashboard"
-              element={
-                <AdminRoute>
-                  <AdminDashboard />
-                </AdminRoute>
-              }
-            />
-            <Route
-              path="/database"
-              element={
-                <AdminRoute>
-                  <DatabasePage />
-                </AdminRoute>
-              }
-            />
-            <Route path="/sign-in" element={<SignInPage />} />
-            <Route path="/sign-up" element={<SignUpPage />} />
-            <Route
-              path="/dashboard"
-              element={
-                <DashBoardPage />
-              }
-            />
-            <Route path="/about" element={<AboutPage />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </main>
-      </div>
+      <main id="main" className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-10">
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/home" element={<Home />} />
+          <Route path="/dashboard" element={<Protected><DashBoardPage /></Protected>} />
+          <Route path="/wallet" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/admin-dashboard" element={<Protected admin><AdminDashboard /></Protected>} />
+          <Route path="/database" element={<Protected admin><DatabasePage /></Protected>} />
+          <Route path="/sign-in/*" element={<SignInPage />} />
+          <Route path="/sign-up/*" element={<SignUpPage />} />
+          <Route path="/about" element={<Home />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </main>
     </div>
   )
-}
-
-AdminRoute.propTypes = {
-  children: PropTypes.node.isRequired,
 }

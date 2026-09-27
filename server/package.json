@@ -6,7 +6,10 @@
   "scripts": {
     "dev": "nodemon index.js",
     "start": "node index.js",
-    "init-db": "node db/init-db.js"
+    "init-db": "node db/init-db.js",
+    "migrate": "node db/init-db.js",
+    "migrate:lbp": "node db/migrateLbp.js",
+    "test": "node --test"
   },
   "keywords": [],
   "author": "",

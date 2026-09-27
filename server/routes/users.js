@@ -1,7 +1,10 @@
-const router = require('express').Router();
+const { Router } = require('express');
 const { clerkClient } = require('@clerk/express');
-const db = require('../db');
-const { authenticate, syncUser, requireRole } = require('../middleware/auth');
+const defaultDb = require('../db');
+const { authenticate, syncUser: defaultSyncUser, requireRole } = require('../middleware/auth');
+
+function createUsersRouter(db = defaultDb, syncUser = defaultSyncUser, client = clerkClient) {
+const router = Router();
 
 
 // Get all users (admin only)
@@ -17,7 +20,7 @@ router.put('/:userId/role', authenticate, syncUser, requireRole('admin'), async 
     return res.status(400).json({ error: 'Invalid role' });
   }
   // Update in Clerk metadata
-  await clerkClient.users.updateUserMetadata(req.params.userId, {
+  await client.users.updateUserMetadata(req.params.userId, {
     publicMetadata: { role }
   });
   // Update in our DB
@@ -27,4 +30,7 @@ router.put('/:userId/role', authenticate, syncUser, requireRole('admin'), async 
 
 
 
-module.exports = router;
+return router;
+}
+module.exports = createUsersRouter();
+module.exports.createUsersRouter = createUsersRouter;

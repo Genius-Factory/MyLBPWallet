@@ -2,3 +2,11 @@
 .vscode/mcp.json
 .claude
 node_modules
+.env
+.env.*
+!.env.example
+dist/
+coverage/
+.artifacts/
+test-results/
+playwright-report/

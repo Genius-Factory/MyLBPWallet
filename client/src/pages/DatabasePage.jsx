@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { AlertCircle, ChevronLeft, ChevronRight, Database, RefreshCw, Table2 } from 'lucide-react'
 import { useApi } from '../hooks/useApi'
 
@@ -26,7 +26,7 @@ export default function DatabasePage() {
     return Math.max(Math.ceil(tableData.total / PAGE_SIZE), 1)
   }, [tableData])
 
-  const loadTables = async () => {
+  const loadTables = useCallback(async () => {
     setError('')
     setLoadingTables(true)
 
@@ -41,12 +41,11 @@ export default function DatabasePage() {
     } finally {
       setLoadingTables(false)
     }
-  }
+  }, [api])
 
   useEffect(() => {
     loadTables()
-  }, 
-)
+  }, [loadTables])
 
   useEffect(() => {
     if (!selectedTable) return
