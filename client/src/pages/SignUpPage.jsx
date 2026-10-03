@@ -6,7 +6,7 @@ export default function SignUpPage() {
       <div className="text-center">
         <h1 className="text-3xl font-bold text-blue-700 mb-2"> Personal Wallet Tracker</h1>
         <p className="text-gray-500 mb-8">Create your account</p>
-        <SignUp afterSignUpUrl="/" />
+        <SignUp routing="path" path="/sign-up" signInUrl="/sign-in" forceRedirectUrl="/dashboard" />
       </div>
     </div>
   )

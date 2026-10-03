@@ -1,6 +1,9 @@
-const router = require('express').Router();
-const db = require('../db');
-const { authenticate, syncUser, requireRole } = require('../middleware/auth');
+const { Router } = require('express');
+const defaultDb = require('../db');
+const { authenticate, syncUser: defaultSyncUser, requireRole } = require('../middleware/auth');
+
+function createDatabaseRouter(db = defaultDb, syncUser = defaultSyncUser) {
+const router = Router();
 
 const adminOnly = [authenticate, syncUser, requireRole('admin')];
 
@@ -84,4 +87,7 @@ router.get('/tables/:tableName', adminOnly, async (req, res) => {
   });
 });
 
-module.exports = router;
+return router;
+}
+module.exports = createDatabaseRouter();
+module.exports.createDatabaseRouter = createDatabaseRouter;

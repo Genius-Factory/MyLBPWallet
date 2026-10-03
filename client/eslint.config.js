@@ -36,4 +36,9 @@ export default [
       "react/prop-types": "off",
     },
   },
+  {
+    files: ['tests/**', 'playwright.config.js'],
+    languageOptions: { globals: { ...globals.browser, ...globals.node } },
+    rules: { 'react-refresh/only-export-components': 'off' },
+  },
 ]
