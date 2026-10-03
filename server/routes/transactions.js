@@ -62,28 +62,35 @@ router.put('/budget', signedInOnly, async (req, res) => {
 router.get('/', signedInOnly, async (req, res) => {
   const { period = 'all', type = 'all' } = req.query;
   const values = [req.auth.userId];
-  const conditions = ['user_id = $1'];
+  const conditions = ['t.user_id = $1'];
 
   if (type === 'income' || type === 'expense') {
     values.push(type);
-    conditions.push(`type = $${values.length}`);
+    conditions.push(`t.type = $${values.length}`);
   }
 
   if (period === 'today') {
-    conditions.push('spent_at >= CURRENT_DATE AND spent_at < CURRENT_DATE + INTERVAL \'1 day\'');
+    conditions.push('t.spent_at >= CURRENT_DATE AND t.spent_at < CURRENT_DATE + INTERVAL \'1 day\'');
   } else if (period === 'this-month') {
-    conditions.push("spent_at >= date_trunc('month', CURRENT_DATE) AND spent_at < date_trunc('month', CURRENT_DATE) + INTERVAL '1 month'");
+    conditions.push("t.spent_at >= date_trunc('month', CURRENT_DATE) AND t.spent_at < date_trunc('month', CURRENT_DATE) + INTERVAL '1 month'");
   } else if (period === 'previous-month') {
-    conditions.push("spent_at >= date_trunc('month', CURRENT_DATE) - INTERVAL '1 month' AND spent_at < date_trunc('month', CURRENT_DATE)");
+    conditions.push("t.spent_at >= date_trunc('month', CURRENT_DATE) - INTERVAL '1 month' AND t.spent_at < date_trunc('month', CURRENT_DATE)");
   }
 
   const whereClause = conditions.join(' AND ');
   const [transactionsResult, totalsResult, categoriesResult] = await Promise.all([
+    //will select all of the transactions and will check who is the first to
     db.query(
-      `SELECT id, title, amount, currency, type, notes, spent_at
-       FROM transactions
+      `SELECT t.id, t.title, t.amount, t.currency, t.type, t.notes, t.spent_at,
+              COALESCE(c.name, matching_category.name, 'Uncategorized') AS category
+       FROM transactions t
+       LEFT JOIN categories c ON c.id = t.category_id
+       LEFT JOIN categories matching_category
+         ON t.category_id IS NULL
+        AND LOWER(matching_category.name) = LOWER(t.title)
+        AND matching_category.type = t.type
        WHERE ${whereClause}
-       ORDER BY spent_at DESC, id DESC
+       ORDER BY t.spent_at DESC, t.id DESC
        LIMIT 50`,
       values
     ),
@@ -98,13 +105,13 @@ router.get('/', signedInOnly, async (req, res) => {
              ELSE 0
            END
          ), 0) AS expenses_usd
-       FROM transactions
+       FROM transactions t
        WHERE ${whereClause}`,
       values
     ),
     db.query(
       `SELECT title AS category, type, COALESCE(SUM(amount), 0) AS total
-       FROM transactions
+       FROM transactions t
        WHERE ${whereClause}
        GROUP BY title, type
        ORDER BY total DESC, title ASC`,
@@ -135,8 +142,12 @@ router.post('/', signedInOnly, async (req, res) => {
   }
 
   const result = await db.query(
-    `INSERT INTO transactions (user_id, title, amount, currency, type, notes)
-     VALUES ($1, $2, $3, $4, $5, $6)
+    `INSERT INTO transactions (user_id, category_id, title, amount, currency, type, notes)
+     VALUES (
+       $1,
+       (SELECT id FROM categories WHERE LOWER(name) = LOWER($2) AND type = $5 LIMIT 1),
+       $2, $3, $4, $5, $6
+     )
      RETURNING id, title, amount, currency, type, notes, spent_at`,
     [req.auth.userId, title.trim(), Number(amount), currency, type, notes]
   );
