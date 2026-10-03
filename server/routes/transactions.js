@@ -4,7 +4,15 @@ const defaultDb = require('../db');
 const { authenticate, syncUser } = require('../middleware/auth');
 const { dateRange, monthValue, money, configuredRate, transactionInput, integer, badRequest } = require('../lib/wallet');
 
-const columns = 'id, title, amount, currency, type, notes, spent_at, transaction_date::text AS date, lbp_per_usd';
+// Scalar lookups cannot multiply history rows when names differ only by case.
+// Use the oldest matching category consistently for new and legacy transactions.
+const matchingCategory = (title, type, field = 'id') => `(SELECT c.${field} FROM categories c
+  WHERE LOWER(c.name) = LOWER(${title}::varchar) AND c.type = ${type}::varchar ORDER BY c.id LIMIT 1)`;
+const category = `COALESCE(
+  (SELECT c.name FROM categories c WHERE c.id = transactions.category_id AND c.type = transactions.type),
+  ${matchingCategory('transactions.title', 'transactions.type', 'name')}, 'Uncategorized')`;
+const columns = `id, title, amount, currency, type, notes, spent_at, transaction_date::text AS date, lbp_per_usd,
+  category_id, ${category} AS category`;
 const supported = "currency IN ('LBP', 'USD') AND lbp_per_usd > 0 AND type IN ('income', 'expense')";
 const usd = "CASE WHEN currency = 'USD' THEN amount WHEN currency = 'LBP' THEN amount / lbp_per_usd END";
 const lbp = "CASE WHEN currency = 'LBP' THEN amount WHEN currency = 'USD' THEN amount * lbp_per_usd END";
@@ -105,8 +113,8 @@ function createTransactionsRouter(db = defaultDb, guards = [authenticate, syncUs
   router.post('/', async (req, res) => {
     const input = transactionInput(req.body);
     const result = await db.query(
-      `INSERT INTO transactions (user_id, title, amount, currency, type, notes, transaction_date, spent_at, lbp_per_usd)
-       VALUES ($1, $2, $3, $4, $5, $6, $7::date, $7::date, $8)
+      `INSERT INTO transactions (user_id, title, amount, currency, type, notes, transaction_date, spent_at, lbp_per_usd, category_id)
+       VALUES ($1, $2, $3, $4, $5, $6, $7::date, $7::date, $8, ${matchingCategory('$2', '$5')})
        RETURNING ${columns}`,
       [getAuth(req).userId, input.title, input.amount, input.currency, input.type, input.notes, input.date, configuredRate()],
     );
@@ -122,7 +130,9 @@ function createTransactionsRouter(db = defaultDb, guards = [authenticate, syncUs
     const input = transactionInput({ ...existing.rows[0], ...req.body });
     const result = await db.query(
       `UPDATE transactions SET title = $1, amount = $2, currency = $3, type = $4, notes = $5,
-         transaction_date = $6::date, spent_at = $6::date, lbp_per_usd = COALESCE(lbp_per_usd, $7)
+         transaction_date = $6::date, spent_at = $6::date, lbp_per_usd = COALESCE(lbp_per_usd, $7),
+         category_id = CASE WHEN title IS DISTINCT FROM $1::varchar OR type IS DISTINCT FROM $4::varchar OR category_id IS NULL
+           THEN ${matchingCategory('$1', '$4')} ELSE category_id END
        WHERE id = $8 AND user_id = $9 RETURNING ${columns}`,
       [input.title, input.amount, input.currency, input.type, input.notes, input.date, configuredRate(), id, userId],
     );
