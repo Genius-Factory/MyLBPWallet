@@ -114,6 +114,8 @@ export default function DashBoardPage() {
   const handleDeleteTransaction = async (id) => {
     try {
       await api.delete(`/api/transactions/${id}`);
+      //will set the transactions to the current transtion that is being made and the filyer it to check if it has an id or not
+      setTransactions((currentTransactions) => currentTransactions.filter((transaction) => transaction.id !== id));
       await loadTransactions();
       toast.success("Transaction deleted");
     } catch {
@@ -400,17 +402,26 @@ export default function DashBoardPage() {
         </div>
         <div className="mt-4 overflow-x-auto">
           {transactions.length === 0 ? (
-            <p className="py-8 text-center text-sm text-slate-500">No transactions yet.</p>
+            <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50 px-4 py-10 text-center">
+              <p className="font-semibold text-slate-700">No transactions yet</p>
+              <p className="mt-1 text-sm text-slate-500">Your income and expenses will appear here once you add them.</p>
+            </div>
           ) : (
-            <table className="w-full min-w-[560px] text-left text-sm">
+            <table className="w-full min-w-[720px] text-left text-sm">
               <thead className="border-b border-slate-200 text-xs uppercase tracking-wide text-slate-500">
-                <tr><th className="px-3 py-3">Description</th><th className="px-3 py-3">Amount</th><th className="px-3 py-3">Date</th><th className="px-3 py-3 text-right">Actions</th></tr>
+                <tr><th className="px-3 py-3">Description</th><th className="px-3 py-3">Category</th><th className="px-3 py-3">Amount</th><th className="px-3 py-3">Type</th><th className="px-3 py-3">Date</th><th className="px-3 py-3 text-right">Actions</th></tr>
               </thead>
               <tbody>
                 {transactions.map((transaction) => (
                   <tr key={transaction.id} className="border-b border-slate-100 last:border-0">
                     <td className="px-3 py-4 font-medium text-slate-800">{transaction.title}</td>
+                    <td className="px-3 py-4 text-slate-600">{transaction.category || "Uncategorized"}</td>
                     <td className="px-3 py-4 text-slate-700">{Number(transaction.amount).toLocaleString()} {transaction.currency}</td>
+                    <td className="px-3 py-4">
+                      <span className={`rounded-full px-2.5 py-1 text-xs font-medium capitalize ${transaction.type === "income" ? "bg-emerald-100 text-emerald-800" : "bg-rose-100 text-rose-800"}`}>
+                        {transaction.type}
+                      </span>
+                    </td>
                     <td className="px-3 py-4 text-slate-500">{new Date(transaction.spent_at).toLocaleDateString()}</td>
                     <td className="px-3 py-4 text-right">
                       <button type="button" title="Edit transaction" aria-label="Edit transaction" onClick={() => setEditingTransaction({ ...transaction })} className="mr-3 text-blue-600 hover:text-blue-800"><Pencil size={17} /></button>
@@ -460,4 +471,3 @@ export default function DashBoardPage() {
     </div>
   );
 }
-
