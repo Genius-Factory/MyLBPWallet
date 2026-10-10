@@ -2,6 +2,7 @@ require('express-async-errors');
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
+const axios = require('axios')
 const morgan = require('morgan');
 const { clerkMiddleware, getAuth } = require('@clerk/express');
 const db = require('./db');
@@ -10,6 +11,7 @@ const { configuredRate } = require('./lib/wallet');
 
 function createApp(options = {}) {
   const app = express();
+  const API_EXCHANGE_APP_KEY = "aaa"
   const database = options.db || db;
   configuredRate();
   const origins = (process.env.CLIENT_URL || 'http://localhost:5173').split(',').map(value => value.trim()).filter(Boolean);

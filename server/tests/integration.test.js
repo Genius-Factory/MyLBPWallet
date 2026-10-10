@@ -181,6 +181,11 @@ testCase('pagination includes more than 50 entries and legacy currencies are fla
   assert.equal(first.totals.income, '61.00');
   assert.equal(first.totals.excludedCount, 1);
   assert.equal(first.transactions[0].excluded_from_totals, true);
+  assert.deepEqual(
+    first.transactions.map(({ date, id }) => [date, id]),
+    [...first.transactions].map(({ date, id }) => [date, id])
+      .sort(([dateA, idA], [dateB, idB]) => dateB.localeCompare(dateA) || idB - idA),
+  );
   const last = (await request('/transactions?month=2026-09&page=3')).data;
   assert.equal(last.transactions.length, 12);
   assert.ok(!first.transactions.some(a => last.transactions.some(b => a.id === b.id)));
@@ -196,6 +201,7 @@ testCase('validation and admin authorization return safe client errors', async (
   assert.equal((await request('/users')).status, 403);
   assert.equal((await request('/database/tables')).status, 403);
   assert.equal((await request('/users', { user: 'admin' })).status, 200);
+  console.log("suecsussful")
 });
 
 testCase('migration backs up duplicate budgets, backfills rates and is repeatable', async () => {

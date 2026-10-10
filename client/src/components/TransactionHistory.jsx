@@ -17,7 +17,7 @@ export default function TransactionHistory({ data, type, page, onType, onPage, o
               <span className={`mt-1 hidden rounded-xl p-2.5 sm:block ${item.type === 'income' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-500'}`}>{item.type === 'income' ? <ArrowDownLeft size={19} /> : <ArrowUpRight size={19} />}</span>
               <div className="min-w-0 flex-1">
                 <p className="break-words text-sm font-semibold">{item.title}</p>
-                <p className="mt-1 break-words text-xs text-slate-500">{item.category || 'Uncategorized'}</p>
+                <p className="mt-1 break-words text-xs text-slate-500">Category: {item.category || 'Uncategorized'}</p>
                 <p className="mt-1 text-xs text-slate-500"><span className="capitalize">{item.type}</span> · {dateLabel(item.date)}</p>
                 {item.notes && <p className="mt-1 break-words text-xs text-slate-500">{item.notes}</p>}
                 {item.excluded_from_totals && <p className="mt-1 text-xs text-amber-700">Legacy entry excluded from totals. Edit to use a supported currency and type.</p>}

@@ -1,8 +1,8 @@
 import { test, expect } from '@playwright/test'
 
 const initial = [
-  { id: 1, title: 'Monthly salary', amount: '1200.00', currency: 'USD', type: 'income', date: '2026-09-01', notes: 'September', lbp_per_usd: '89500' },
-  { id: 2, title: 'Groceries', amount: '4475000.00', currency: 'LBP', type: 'expense', date: '2026-09-12', notes: 'Weekly shop', lbp_per_usd: '89500' },
+  { id: 1, title: 'Monthly salary', amount: '1200.00', currency: 'USD', type: 'income', date: '2026-09-01', notes: 'September', category: 'Salary', lbp_per_usd: '89500' },
+  { id: 2, title: 'Groceries', amount: '4475000.00', currency: 'LBP', type: 'expense', date: '2026-09-12', notes: 'Weekly shop', category: 'Food', lbp_per_usd: '89500' },
 ]
 async function fixture(page, options = {}) {
   let transactions = options.empty ? [] : structuredClone(initial)
@@ -50,7 +50,9 @@ async function fixture(page, options = {}) {
     const income = matching.filter(item => item.type === 'income').reduce((sum, item) => sum + Number(item.amount) / (item.currency === 'LBP' ? 89500 : 1), 0)
     const expenses = matching.filter(item => item.type === 'expense').reduce((sum, item) => sum + Number(item.amount) / (item.currency === 'LBP' ? 89500 : 1), 0)
     const type = url.searchParams.get('type')
-    const visible = matching.filter(item => type === 'all' || item.type === type)
+    const visible = matching
+      .filter(item => type === 'all' || item.type === type)
+      .sort((a, b) => b.date.localeCompare(a.date) || b.id - a.id)
     return respond({
       transactions: visible, totals: {
         income: income.toFixed(2), expenses: expenses.toFixed(2), balance: (income - expenses).toFixed(2),
@@ -75,6 +77,8 @@ test('desktop overview, filter, editing, deletion confirmation and persistence',
   await fixture(page)
   await openTracker(page)
   await expect(page.getByText('$1,200.00', { exact: true })).toBeVisible()
+  await expect(page.getByRole('listitem').first()).toContainText('Groceries')
+  await expect(page.getByText('Category: Food')).toBeVisible()
   await page.getByRole('combobox', { name: 'Show' }).selectOption('expense')
   await expect(page.getByRole('button', { name: 'Edit Monthly salary' })).toHaveCount(0)
   await expect(page.getByText('$1,200.00', { exact: true })).toBeVisible()
