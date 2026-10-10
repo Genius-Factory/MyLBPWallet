@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import { ArrowDownLeft, ArrowUpRight, Wallet } from 'lucide-react'
+import { Wallet } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useWallet } from '../hooks/useWallet'
 import { apiError } from '../lib/api'
@@ -53,17 +53,14 @@ export default function DashBoardPage() {
       {error && <div className="error-box flex flex-wrap items-center justify-between gap-3" role="alert"><span>{error}</span><button className="btn-secondary" onClick={refresh}>Try again</button></div>}
       {data && <>
         {data.totals.excludedCount > 0 && <p className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800" role="alert">{data.totals.excludedCount} legacy entries cannot be converted and are excluded from these totals. Review the marked entries in history.</p>}
-        <div className="grid gap-4 sm:grid-cols-3">
-          {[
-            { label: 'Total income', value: data.totals.income, equivalent: data.totals.incomeLbp, icon: ArrowDownLeft, color: 'text-emerald-600', background: 'bg-emerald-50' },
-            { label: 'Total expenses', value: data.totals.expenses, equivalent: data.totals.expensesLbp, icon: ArrowUpRight, color: 'text-rose-500', background: 'bg-rose-50' },
-            { label: 'Balance', value: data.totals.balance, equivalent: data.totals.balanceLbp, icon: Wallet, color: 'text-blue-600', background: 'bg-blue-50' },
-          ].map(({ label, value, equivalent, icon: Icon, color, background }) => <article key={label} className="card">
-            <div className="flex items-center justify-between gap-3"><p className="text-sm text-slate-500">{label}</p><span className={`rounded-lg p-2 ${color} ${background}`}><Icon size={18} aria-hidden="true" /></span></div>
-            <p className={`mt-3 break-all text-3xl font-semibold tracking-tight tabular-nums ${Number(value) < 0 ? 'text-rose-600' : ''}`}>{money(value)}</p>
-            <p className="mt-2 text-xs text-slate-400">{money(equivalent, 'LBP')} · saved rates</p>
-          </article>)}
-        </div>
+        <article aria-labelledby="wallet-balance-label" className="relative isolate w-full max-w-md overflow-hidden rounded-3xl border border-white bg-gradient-to-br from-slate-200 via-slate-100 to-white p-7 shadow-[0_12px_32px_-16px_rgba(15,23,42,0.35)] sm:p-8">
+          <div aria-hidden="true" className="pointer-events-none absolute -right-16 -top-24 -z-10 h-64 w-64 rounded-full border-[32px] border-white/40" />
+          <div className="flex items-center justify-between gap-4">
+            <h2 id="wallet-balance-label" className="text-sm font-medium text-slate-600">Balance</h2>
+            <Wallet size={28} className="text-blue-600" aria-hidden="true" />
+          </div>
+          <p className={`mt-10 break-all text-4xl font-semibold tracking-tight tabular-nums sm:text-5xl ${Number(data.totals.balance) < 0 ? 'text-rose-600' : 'text-slate-900'}`}>{money(data.totals.balance)}</p>
+        </article>
       </>}
       <div className="grid items-stretch gap-6 lg:grid-cols-[1.6fr_1fr]">
         <TransactionForm key={`${month}-${editing?.id || 'new'}`} api={api} month={month} editing={editing} rate={data?.rate} onSaved={saved} onCancel={() => setEditing(null)} onBusy={setBusy} busy={busy} />
