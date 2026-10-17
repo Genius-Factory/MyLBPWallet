@@ -100,7 +100,7 @@ testCase('mixed currencies use saved decimal rates, filters do not change monthl
   await request('/transactions', { method: 'POST', body: entry({ amount: '500', date: '2026-10-01' }) });
   process.env.LBP_PER_USD = '100000';
   await request(`/transactions/${expense.data.transaction.id}`, { method: 'PUT', body: { title: 'Groceries', amount: '895000' } });
-  const result = await request('/transactions?month=2026-09&type=expense');
+  const result = await request('/transactions?month=2026-09&type=expense&category=Groceries&search=grocer');
   assert.equal(result.data.totals.income, '100.00');
   assert.equal(result.data.totals.expenses, '10.00');
   assert.equal(result.data.totals.balance, '90.00');
@@ -108,6 +108,7 @@ testCase('mixed currencies use saved decimal rates, filters do not change monthl
   assert.equal(result.data.transactions[0].lbp_per_usd, '89500.000000');
   assert.equal(result.data.pagination.total, 1);
   assert.equal(result.data.totals.transactionCount, 2);
+  assert.deepEqual(result.data.categories.sort(), ['Groceries', 'Salary']);
   assert.equal(result.data.rate.lbpPerUsd, '100000');
 });
 

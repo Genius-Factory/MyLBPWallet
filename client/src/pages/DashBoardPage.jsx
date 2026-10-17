@@ -11,19 +11,21 @@ import TransactionHistory from '../components/TransactionHistory'
 export default function DashBoardPage() {
   const [month, setMonth] = useState(() => beirutDate().slice(0, 7))
   const [type, setType] = useState('all')
+  const [category, setCategory] = useState('')
+  const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
   const [editing, setEditing] = useState(null)
   const [busy, setBusy] = useState(false)
   const [deleteError, setDeleteError] = useState('')
   const deleting = useRef(false)
-  const { api, data, loading, error, refresh } = useWallet(month, type, page)
+  const { api, data, loading, error, refresh } = useWallet(month, type, category, search, page)
 
   const changeMonth = value => {
     if (!/^\d{4}-\d{2}$/.test(value) || value < '1900-01') return
     setMonth(value); setPage(1); setEditing(null); setDeleteError('')
   }
   const saved = transactionMonth => {
-    setEditing(null); setPage(1); setType('all')
+    setEditing(null); setPage(1); setType('all'); setCategory(''); setSearch('')
     if (transactionMonth !== month) setMonth(transactionMonth)
     refresh()
     toast.success('Transaction saved')
@@ -71,7 +73,14 @@ export default function DashBoardPage() {
           : <section className="card"><h2 className="text-lg font-semibold">Monthly budget</h2><p className="mt-3 text-sm text-slate-500">{loading ? 'Loading your budget…' : 'Retry loading your wallet to view or update the budget.'}</p></section>}
       </div>
       {deleteError && <p className="error-box" role="alert">{deleteError}</p>}
-      {data && <TransactionHistory data={data} type={type} page={page} busy={busy} onType={value => { setType(value); setPage(1) }} onPage={setPage} onEdit={item => { setEditing(item); document.getElementById('transaction-form')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); requestAnimationFrame(() => document.getElementById('entry-title-input')?.focus()) }} onDelete={remove} />}
+      {data && <TransactionHistory data={data} type={type} category={category} search={search} page={page} busy={busy}
+        onType={value => { setType(value); setPage(1) }}
+        onCategory={value => { setCategory(value); setPage(1) }}
+        onSearch={value => { setSearch(value); setPage(1) }}
+        onClearFilters={() => { setType('all'); setCategory(''); setSearch(''); setPage(1) }}
+        onPage={setPage}
+        onEdit={item => { setEditing(item); document.getElementById('transaction-form')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); requestAnimationFrame(() => document.getElementById('entry-title-input')?.focus()) }}
+        onDelete={remove} />}
       <p className="pb-3 text-center text-xs leading-5 text-slate-400">Monthly totals include all income and expenses, regardless of the history filter.<br />Dates follow the Asia/Beirut calendar. Conversion uses saved configured rates, not live market rates.</p>
     </div>
   )

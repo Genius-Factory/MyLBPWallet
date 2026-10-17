@@ -50,8 +50,12 @@ async function fixture(page, options = {}) {
     const income = matching.filter(item => item.type === 'income').reduce((sum, item) => sum + Number(item.amount) / (item.currency === 'LBP' ? 89500 : 1), 0)
     const expenses = matching.filter(item => item.type === 'expense').reduce((sum, item) => sum + Number(item.amount) / (item.currency === 'LBP' ? 89500 : 1), 0)
     const type = url.searchParams.get('type')
+    const category = url.searchParams.get('category')
+    const search = (url.searchParams.get('search') || '').trim().toLowerCase()
     const visible = matching
       .filter(item => type === 'all' || item.type === type)
+      .filter(item => !category || item.category === category)
+      .filter(item => !search || item.title.toLowerCase().includes(search))
       .sort((a, b) => b.date.localeCompare(a.date) || b.id - a.id)
     return respond({
       transactions: visible, totals: {
@@ -60,6 +64,7 @@ async function fixture(page, options = {}) {
         transactionCount: matching.length, excludedCount: 0,
       },
       pagination: { page: 1, pages: 1, limit: 25, total: visible.length },
+      categories: [...new Set(matching.map(item => item.category || 'Uncategorized'))].sort(),
       rate: { lbpPerUsd: '89500', source: 'configured' },
     })
   })
@@ -95,6 +100,31 @@ test('desktop overview, filter, editing, deletion confirmation and persistence',
   await page.getByRole('button', { name: 'Delete entry', exact: true }).click()
   await expect(page.getByRole('button', { name: 'Delete Food shopping' })).toHaveCount(0)
   await page.screenshot({ path: '../.artifacts/tracker-desktop.png', fullPage: true })
+})
+test('transaction filters combine, can be cleared, and do not change monthly totals', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await fixture(page)
+  await openTracker(page)
+  await page.getByRole('combobox', { name: 'Show' }).selectOption('income')
+  await expect(page.getByRole('button', { name: 'Edit Monthly salary' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Edit Groceries' })).toHaveCount(0)
+  await expect(page.getByText('$1,200.00', { exact: true })).toBeVisible()
+
+  await page.getByRole('combobox', { name: 'Show' }).selectOption('expense')
+  await page.getByLabel('Category').selectOption('Food')
+  await page.getByLabel('Search transactions').fill('grocer')
+  await expect(page.getByRole('button', { name: 'Edit Groceries' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Edit Monthly salary' })).toHaveCount(0)
+  await expect(page.getByText('$1,200.00', { exact: true })).toBeVisible()
+  await page.getByRole('button', { name: 'Clear search' }).click()
+  await expect(page.getByRole('button', { name: 'Edit Groceries' })).toBeVisible()
+
+  await page.getByLabel('Search transactions').fill('not found')
+  await expect(page.getByText('No transactions match the selected filters')).toBeVisible()
+  await page.getByRole('button', { name: 'Clear Filters' }).click()
+  await expect(page.getByRole('button', { name: 'Edit Monthly salary' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Edit Groceries' })).toBeVisible()
+  await expect(page.getByText('$1,200.00', { exact: true })).toBeVisible()
 })
 test('failed transaction retains input and prevents duplicate submissions', async ({ page }) => {
   const api = await fixture(page, { failSave: true, saveDelay: 150 })

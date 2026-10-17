@@ -48,6 +48,9 @@ function createTransactionsRouter(db = defaultDb, guards = [authenticate, syncUs
   router.get('/', async (req, res) => {
     const { type = 'all' } = req.query;
     if (!['all', 'income', 'expense'].includes(type)) throw badRequest('Unknown transaction type.');
+    const { search = '', category: selectedCategory = '' } = req.query;
+    if (typeof search !== 'string' || search.length > 180) throw badRequest('Search must be 180 characters or fewer.');
+    if (typeof selectedCategory !== 'string' || selectedCategory.length > 120) throw badRequest('Category must be 120 characters or fewer.');
     const page = integer(req.query.page, 1, 1000000);
     const limit = integer(req.query.limit, 25, 100);
     const range = dateRange(req.query);
@@ -63,6 +66,14 @@ function createTransactionsRouter(db = defaultDb, guards = [authenticate, syncUs
       historyValues.push(type);
       historyWhere += ` AND type = $${historyValues.length}`;
     }
+    if (selectedCategory) {
+      historyValues.push(selectedCategory);
+      historyWhere += ` AND LOWER(${category}) = LOWER($${historyValues.length})`;
+    }
+    if (search.trim()) {
+      historyValues.push(search.trim());
+      historyWhere += ` AND POSITION(LOWER($${historyValues.length}) IN LOWER(title)) > 0`;
+    }
     // A single snapshot keeps counts, rows, and summary consistent during concurrent writes.
     const client = await db.connect();
     try {
@@ -74,6 +85,10 @@ function createTransactionsRouter(db = defaultDb, guards = [authenticate, syncUs
         [...historyValues, limit, (page - 1) * limit],
       );
       const count = await client.query(`SELECT COUNT(*)::int AS total FROM transactions WHERE ${historyWhere}`, historyValues);
+      const categories = await client.query(
+        `SELECT DISTINCT ${category} AS category FROM transactions WHERE ${where} ORDER BY category`,
+        values,
+      );
       const summary = await client.query(
         `WITH eligible AS (
            SELECT *, (${supported}) AS supported,
@@ -102,6 +117,7 @@ function createTransactionsRouter(db = defaultDb, guards = [authenticate, syncUs
         transactions: transactions.rows,
         totals: { ...totals, currency: 'USD', expensesUsd: totals.expenses },
         pagination: { page, limit, total: count.rows[0].total, pages: Math.max(1, Math.ceil(count.rows[0].total / limit)) },
+        categories: categories.rows.map(row => row.category),
         rate: { lbpPerUsd: configuredRate(), source: 'configured', historical: 'Transaction totals use saved rates.' },
       });
     } catch (error) {
