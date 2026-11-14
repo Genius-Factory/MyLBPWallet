@@ -24,6 +24,9 @@ export function useWallet(month, type, category, search, page) {
   }, [api, month, type, category, search, page, key])
 
   const current = state.key === key
+  if (current === 401){
+    return "ERROR: failed to load current "
+  }
   return {
     api, refresh,
     data: current ? state.data : null,

@@ -6,9 +6,15 @@ export function createApi(getToken) {
     const token = await getToken()
     if (!token) throw new Error('Your session has expired. Please sign in again.')
     config.headers.Authorization = `Bearer ${token}`
+    
     return config
   })
   return api
+}
+
+export function createApiSucces(succes, fallback= "it succeded!"){
+  if (succes.response?.status === 200) return 'it has worked perfectly'
+  return succes.response?.data?.succes || succes.message || fallback
 }
 
 export function apiError(error, fallback = 'Something went wrong. Please retry.') {
