@@ -5,9 +5,19 @@ import { useApi } from '../hooks/useApi'
 const PAGE_SIZE = 25
 
 function formatValue(value) {
-  if (value === null) return 'NULL'
-  if (value === undefined) return ''
-  if (typeof value === 'object') return JSON.stringify(value)
+  if (value === null)
+  {
+    return 'NULL'
+  } 
+     
+  if (value === undefined)
+  {
+    return ''
+  } 
+  if (typeof value === 'object')
+  {
+    return JSON.stringify(value)
+  } 
   return String(value)
 }
 

@@ -31,7 +31,12 @@ function createApp(options = {}) {
   app.get(['/healthz', '/healthz/healthz'], async (req, res) => {
     await database.query('SELECT 1');
     const schema = await database.query("SELECT to_regclass('schema_migrations') AS table_name");
-    if (!schema.rows[0].table_name) return res.status(503).json({ status: 'migration_required' });
+    if (!schema.rows[0].table_name)
+    {
+      return res.status(503).json({ 
+        status: 'migration_required' 
+      });
+    } 
     const result = await database.query("SELECT version FROM schema_migrations WHERE version = '002_monthly_tracker'");
     if (!result.rowCount) return res.status(503).json({ status: 'migration_required' });
     res.json({ status: 'ok', db: true });
